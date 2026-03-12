@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RepairPro — Gestionale Riparazioni</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --surface2: #242424;
+    --border: #2e2e2e;
+    --accent: #f0c040;
+    --accent2: #40c0f0;
+    --danger: #f05060;
+    --success: #40d080;
+    --text: #f0f0f0;
+    --muted: #888;
+    --radius: 10px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+
+/* LAYOUT */
+.app { display: flex; min-height: 100vh; }
+.sidebar {
+width: 220px; background: var(–surface); border-right: 1px solid var(–border);
+display: flex; flex-direction: column; position: fixed; height: 100vh; z-index: 100;
+}
+.logo {
+padding: 24px 20px 20px; border-bottom: 1px solid var(–border);
+font-family: ‘Syne’, sans-serif; font-weight: 800; font-size: 20px;
+color: var(–accent); letter-spacing: -0.5px;
+}
+.logo span { color: var(–text); font-weight: 400; }
+.nav { padding: 12px 10px; flex: 1; }
+.nav-item {
+display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+border-radius: 8px; cursor: pointer; font-size: 14px; color: var(–muted);
+transition: all .15s; margin-bottom: 2px; border: none; background: none; width: 100%; text-align: left;
+}
+.nav-item:hover { background: var(–surface2); color: var(–text); }
+.nav-item.active { background: var(–accent); color: #000; font-weight: 600; }
+.nav-item .ico { font-size: 18px; width: 22px; text-align: center; }
+.main { margin-left: 220px; flex: 1; padding: 28px 32px; }
+
+/* HEADER */
+.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
+.page-title { font-family: ‘Syne’, sans-serif; font-weight: 700; font-size: 26px; }
+.page-title small { font-size: 13px; color: var(–muted); font-family: ‘DM Sans’, sans-serif; font-weight: 300; margin-left: 8px; }
+
+/* BUTTONS */
+.btn {
+padding: 9px 18px; border-radius: 8px; border: none; cursor: pointer;
+font-family: ‘DM Sans’, sans-serif; font-size: 13px; font-weight: 500; transition: all .15s;
+}
+.btn-primary { background: var(–accent); color: #000; }
+.btn-primary:hover { background: #f5d060; }
+.btn-ghost { background: var(–surface2); color: var(–text); border: 1px solid var(–border); }
+.btn-ghost:hover { border-color: var(–accent); color: var(–accent); }
+.btn-danger { background: var(–danger); color: #fff; }
+.btn-sm { padding: 5px 12px; font-size: 12px; }
+
+/* CARDS / STATS */
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+.stat-card {
+background: var(–surface); border: 1px solid var(–border); border-radius: var(–radius);
+padding: 20px; position: relative; overflow: hidden;
+}
+.stat-card::before { content: ‘’; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(–accent); }
+.stat-card.blue::before { background: var(–accent2); }
+.stat-card.green::before { background: var(–success); }
+.stat-card.red::before { background: var(–danger); }
+.stat-label { font-size: 11px; color: var(–muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; font-family: ‘DM Mono’, monospace; }
+.stat-value { font-family: ‘Syne’, sans-serif; font-size: 32px; font-weight: 700; }
+.stat-sub { font-size: 11px; color: var(–muted); margin-top: 4px; }
+
+/* TABLE */
+.card { background: var(–surface); border: 1px solid var(–border); border-radius: var(–radius); overflow: hidden; }
+.card-header { padding: 16px 20px; border-bottom: 1px solid var(–border); display: flex; align-items: center; justify-content: space-between; }
+.card-title { font-family: ‘Syne’, sans-serif; font-size: 15px; font-weight: 600; }
+table { width: 100%; border-collapse: collapse; }
+th { padding: 10px 16px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(–muted); font-family: ‘DM Mono’, monospace; border-bottom: 1px solid var(–border); }
+td { padding: 13px 16px; font-size: 13px; border-bottom: 1px solid var(–border); }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(–surface2); }
+
+/* BADGE */
+.badge {
+display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px;
+font-weight: 600; font-family: ‘DM Mono’, monospace;
+}
+.badge-yellow { background: rgba(240,192,64,.15); color: var(–accent); border: 1px solid rgba(240,192,64,.3); }
+.badge-blue { background: rgba(64,192,240,.15); color: var(–accent2); border: 1px solid rgba(64,192,240,.3); }
+.badge-green { background: rgba(64,208,128,.15); color: var(–success); border: 1px solid rgba(64,208,128,.3); }
+.badge-red { background: rgba(240,80,96,.15); color: var(–danger); border: 1px solid rgba(240,80,96,.3); }
+
+/* SEARCH */
+.search-bar { display: flex; gap: 12px; margin-bottom: 20px; }
+.input {
+background: var(–surface); border: 1px solid var(–border); color: var(–text);
+padding: 9px 14px; border-radius: 8px; font-family: ‘DM Sans’, sans-serif; font-size: 13px;
+outline: none; transition: border .15s;
+}
+.input:focus { border-color: var(–accent); }
+.input-full { flex: 1; }
+
+/* MODAL */
+.modal-overlay {
+position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 1000;
+display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);
+opacity: 0; pointer-events: none; transition: opacity .2s;
+}
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal {
+background: var(–surface); border: 1px solid var(–border); border-radius: 14px;
+width: 500px; max-width: 95vw; max-height: 90vh; overflow-y: auto;
+transform: translateY(20px); transition: transform .2s;
+}
+.modal-overlay.open .modal { transform: translateY(0); }
+.modal-header { padding: 20px 24px; border-bottom: 1px solid var(–border); display: flex; justify-content: space-between; align-items: center; }
+.modal-title { font-family: ‘Syne’, sans-serif; font-weight: 700; font-size: 18px; }
+.modal-close { background: none; border: none; color: var(–muted); cursor: pointer; font-size: 22px; line-height: 1; }
+.modal-body { padding: 24px; }
+.modal-footer { padding: 16px 24px; border-top: 1px solid var(–border); display: flex; justify-content: flex-end; gap: 10px; }
+
+/* FORM */
+.form-group { margin-bottom: 16px; }
+.form-label { display: block; font-size: 12px; color: var(–muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .5px; font-family: ‘DM Mono’, monospace; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+select.input { width: 100%; appearance: none; cursor: pointer; }
+textarea.input { width: 100%; resize: vertical; min-height: 70px; }
+
+/* SECTION TABS */
+.section { display: none; }
+.section.active { display: block; }
+
+/* INVOICE PREVIEW */
+.invoice-box {
+background: #fff; color: #111; border-radius: 10px; padding: 32px;
+font-family: ‘DM Sans’, sans-serif;
+}
+.invoice-box h1 { font-family: ‘Syne’, sans-serif; font-size: 28px; color: #f0c040; }
+.inv-row { display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 13px; }
+.inv-table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+.inv-table th { background: #f5f5f5; padding: 8px 12px; text-align: left; font-size: 12px; }
+.inv-table td { padding: 8px 12px; border-bottom: 1px solid #eee; font-size: 13px; }
+.inv-total { font-family: ‘Syne’, sans-serif; font-size: 20px; font-weight: 700; color: #111; }
+
+/* EMPTY */
+.empty { text-align: center; padding: 48px; color: var(–muted); }
+.empty-ico { font-size: 40px; margin-bottom: 12px; }
+
+/* ALERT */
+.alert { padding: 12px 16px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; }
+.alert-warn { background: rgba(240,192,64,.1); border: 1px solid rgba(240,192,64,.3); color: var(–accent); }
+</style>
+
+</head>
+<body>
+<div class="app">
+
+<!-- SIDEBAR -->
+
+<aside class="sidebar">
+  <div class="logo">Repair<span>Pro</span></div>
+  <nav class="nav">
+    <button class="nav-item active" onclick="showSection('dashboard')"><span class="ico">📊</span> Dashboard</button>
+    <button class="nav-item" onclick="showSection('riparazioni')"><span class="ico">🔧</span> Riparazioni</button>
+    <button class="nav-item" onclick="showSection('magazzino')"><span class="ico">📦</span> Magazzino</button>
+    <button class="nav-item" onclick="showSection('fatture')"><span class="ico">🧾</span> Fatture</button>
+    <button class="nav-item" onclick="showSection('storico')"><span class="ico">📋</span> Storico</button>
+  </nav>
+</aside>
+
+<!-- MAIN -->
+
+<main class="main">
+
+  <!-- DASHBOARD -->
+
+  <section id="s-dashboard" class="section active">
+    <div class="page-header">
+      <div class="page-title">Dashboard <small>Benvenuto nel tuo gestionale</small></div>
+    </div>
+    <div class="stats" id="stats"></div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">⚡ Ultime riparazioni</div>
+        <button class="btn btn-ghost btn-sm" onclick="showSection('riparazioni')">Vedi tutte →</button>
+      </div>
+      <table><thead><tr><th>#</th><th>Cliente</th><th>Dispositivo</th><th>Problema</th><th>Stato</th><th>Data</th></tr></thead>
+      <tbody id="dash-table"><tr><td colspan="6" class="empty">Nessuna riparazione ancora</td></tr></tbody></table>
+    </div>
+  </section>
+
+  <!-- RIPARAZIONI -->
+
+  <section id="s-riparazioni" class="section">
+    <div class="page-header">
+      <div class="page-title">Riparazioni <small>Gestisci le schede clienti</small></div>
+      <button class="btn btn-primary" onclick="openModal('modal-rip')">+ Nuova Riparazione</button>
+    </div>
+    <div class="search-bar">
+      <input class="input input-full" type="text" placeholder="🔍 Cerca per cliente, dispositivo..." oninput="filterTable(this.value,'rip-table',ripList)">
+      <select class="input" onchange="filterByStatus(this.value)">
+        <option value="">Tutti gli stati</option>
+        <option value="In attesa">In attesa</option>
+        <option value="In lavorazione">In lavorazione</option>
+        <option value="Pronto">Pronto</option>
+        <option value="Consegnato">Consegnato</option>
+      </select>
+    </div>
+    <div class="card">
+      <table><thead><tr><th>#</th><th>Cliente</th><th>Tel</th><th>Dispositivo</th><th>Problema</th><th>Costo €</th><th>Stato</th><th>Azioni</th></tr></thead>
+      <tbody id="rip-table"></tbody></table>
+    </div>
+  </section>
+
+  <!-- MAGAZZINO -->
+
+  <section id="s-magazzino" class="section">
+    <div class="page-header">
+      <div class="page-title">Magazzino <small>Pezzi di ricambio</small></div>
+      <button class="btn btn-primary" onclick="openModal('modal-mag')">+ Aggiungi Pezzo</button>
+    </div>
+    <div id="alert-scorte"></div>
+    <div class="card">
+      <table><thead><tr><th>Codice</th><th>Descrizione</th><th>Categoria</th><th>Quantità</th><th>Prezzo Acquisto €</th><th>Prezzo Vendita €</th><th>Azioni</th></tr></thead>
+      <tbody id="mag-table"></tbody></table>
+    </div>
+  </section>
+
+  <!-- FATTURE -->
+
+  <section id="s-fatture" class="section">
+    <div class="page-header">
+      <div class="page-title">Fatture & Preventivi <small>Emetti e gestisci documenti</small></div>
+      <button class="btn btn-primary" onclick="openModal('modal-fat')">+ Nuova Fattura</button>
+    </div>
+    <div class="card">
+      <table><thead><tr><th>#</th><th>Cliente</th><th>Riparazione</th><th>Importo €</th><th>Tipo</th><th>Data</th><th>Azioni</th></tr></thead>
+      <tbody id="fat-table"></tbody></table>
+    </div>
+  </section>
+
+  <!-- STORICO -->
+
+  <section id="s-storico" class="section">
+    <div class="page-header">
+      <div class="page-title">Storico Riparazioni <small>Archivio completo</small></div>
+    </div>
+    <div class="search-bar">
+      <input class="input input-full" type="text" placeholder="🔍 Cerca nello storico...">
+    </div>
+    <div class="card">
+      <table><thead><tr><th>#</th><th>Cliente</th><th>Dispositivo</th><th>Problema</th><th>Soluzione</th><th>Costo €</th><th>Data</th></tr></thead>
+      <tbody id="storico-table"></tbody></table>
+    </div>
+  </section>
+
+</main>
+</div>
+
+<!-- MODAL RIPARAZIONE -->
+
+<div class="modal-overlay" id="modal-rip">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">🔧 Nuova Scheda Riparazione</div>
+      <button class="modal-close" onclick="closeModal('modal-rip')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Nome Cliente*</label><input class="input" id="r-nome" placeholder="Mario Rossi" style="width:100%"></div>
+        <div class="form-group"><label class="form-label">Telefono</label><input class="input" id="r-tel" placeholder="333 1234567" style="width:100%"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Email</label><input class="input" id="r-email" placeholder="mario@email.com" style="width:100%"></div>
+        <div class="form-group"><label class="form-label">Dispositivo*</label><input class="input" id="r-device" placeholder="iPhone 14 Pro" style="width:100%"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">IMEI / Seriale</label><input class="input" id="r-imei" placeholder="123456789012345" style="width:100%"></div>
+        <div class="form-group"><label class="form-label">Costo Preventivo €</label><input class="input" id="r-costo" type="number" placeholder="0.00" style="width:100%"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Problema Segnalato*</label><textarea class="input" id="r-problema" placeholder="Es: Schermo rotto, batteria scarica..."></textarea></div>
+      <div class="form-group"><label class="form-label">Note interne</label><textarea class="input" id="r-note" placeholder="Note tecniche, accessori consegnati..."></textarea></div>
+      <div class="form-group"><label class="form-label">Stato</label>
+        <select class="input" id="r-stato" style="width:100%">
+          <option>In attesa</option><option>In lavorazione</option><option>Pronto</option><option>Consegnato</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-rip')">Annulla</button>
+      <button class="btn btn-primary" onclick="saveRip()">💾 Salva Scheda</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL MAGAZZINO -->
+
+<div class="modal-overlay" id="modal-mag">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">📦 Aggiungi Pezzo</div>
+      <button class="modal-close" onclick="closeModal('modal-mag')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Codice</label><input class="input" id="m-cod" placeholder="SCH-IP14-001" style="width:100%"></div>
+        <div class="form-group"><label class="form-label">Categoria</label>
+          <select class="input" id="m-cat" style="width:100%">
+            <option>Schermo</option><option>Batteria</option><option>Connettore</option><option>Fotocamera</option><option>Scocca</option><option>Altro</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">Descrizione*</label><input class="input" id="m-desc" placeholder="Schermo iPhone 14 Pro OLED" style="width:100%"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Quantità</label><input class="input" id="m-qty" type="number" value="1" min="0" style="width:100%"></div>
+        <div class="form-group"><label class="form-label">Scorta minima</label><input class="input" id="m-min" type="number" value="2" min="0" style="width:100%"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Prezzo Acquisto €</label><input class="input" id="m-pac" type="number" placeholder="0.00" style="width:100%"></div>
+        <div class="form-group"><label class="form-label">Prezzo Vendita €</label><input class="input" id="m-pven" type="number" placeholder="0.00" style="width:100%"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-mag')">Annulla</button>
+      <button class="btn btn-primary" onclick="saveMag()">💾 Salva</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL FATTURA -->
+
+<div class="modal-overlay" id="modal-fat">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">🧾 Nuova Fattura / Preventivo</div>
+      <button class="modal-close" onclick="closeModal('modal-fat')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Cliente*</label><input class="input" id="f-cliente" placeholder="Nome cliente" style="width:100%"></div>
+        <div class="form-group"><label class="form-label">Tipo</label>
+          <select class="input" id="f-tipo" style="width:100%"><option>Fattura</option><option>Preventivo</option><option>Ricevuta</option></select>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">Riparazione / Descrizione</label><textarea class="input" id="f-desc" placeholder="Sostituzione schermo iPhone 14..."></textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Importo € (netto)</label><input class="input" id="f-imp" type="number" placeholder="0.00" style="width:100%"></div>
+        <div class="form-group"><label class="form-label">IVA %</label>
+          <select class="input" id="f-iva" style="width:100%"><option value="22">22%</option><option value="10">10%</option><option value="4">4%</option><option value="0">Esente</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-fat')">Annulla</button>
+      <button class="btn btn-primary" onclick="saveFat()">💾 Emetti</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL VISUALIZZA FATTURA -->
+
+<div class="modal-overlay" id="modal-preview">
+  <div class="modal" style="width:580px">
+    <div class="modal-header">
+      <div class="modal-title">👁 Anteprima Documento</div>
+      <button class="modal-close" onclick="closeModal('modal-preview')">×</button>
+    </div>
+    <div class="modal-body"><div id="invoice-preview"></div></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-preview')">Chiudi</button>
+      <button class="btn btn-primary" onclick="window.print()">🖨 Stampa</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DATA STORE ──
+let ripList = JSON.parse(localStorage.getItem('rip') || '[]');
+let magList = JSON.parse(localStorage.getItem('mag') || '[]');
+let fatList = JSON.parse(localStorage.getItem('fat') || '[]');
+let ripId = parseInt(localStorage.getItem('ripId') || '0');
+let fatId = parseInt(localStorage.getItem('fatId') || '0');
+
+function save() {
+  localStorage.setItem('rip', JSON.stringify(ripList));
+  localStorage.setItem('mag', JSON.stringify(magList));
+  localStorage.setItem('fat', JSON.stringify(fatList));
+  localStorage.setItem('ripId', ripId);
+  localStorage.setItem('fatId', fatId);
+}
+
+// ── NAV ──
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('s-' + id).classList.add('active');
+  event && event.currentTarget && event.currentTarget.classList.add('active');
+  if (id === 'dashboard') renderDash();
+  if (id === 'riparazioni') renderRip();
+  if (id === 'magazzino') renderMag();
+  if (id === 'fatture') renderFat();
+  if (id === 'storico') renderStorico();
+}
+function showSectionBtn(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('s-' + id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => { if (n.textContent.trim().toLowerCase().includes(id)) n.classList.add('active'); });
+  if (id === 'riparazioni') renderRip();
+}
+
+// ── MODAL ──
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// ── STATUS BADGE ──
+function badge(stato) {
+  const map = { 'In attesa': 'badge-yellow', 'In lavorazione': 'badge-blue', 'Pronto': 'badge-green', 'Consegnato': 'badge-red' };
+  return `<span class="badge ${map[stato]||'badge-yellow'}">${stato}</span>`;
+}
+
+// ── RIPARAZIONI ──
+function saveRip() {
+  const nome = document.getElementById('r-nome').value.trim();
+  const device = document.getElementById('r-device').value.trim();
+  if (!nome || !device) return alert('Inserisci almeno nome e dispositivo');
+  ripId++;
+  ripList.unshift({
+    id: ripId, nome, tel: document.getElementById('r-tel').value,
+    email: document.getElementById('r-email').value, device,
+    imei: document.getElementById('r-imei').value, costo: document.getElementById('r-costo').value,
+    problema: document.getElementById('r-problema').value, note: document.getElementById('r-note').value,
+    stato: document.getElementById('r-stato').value, data: new Date().toLocaleDateString('it-IT')
+  });
+  save(); closeModal('modal-rip'); renderRip(); renderDash();
+  ['r-nome','r-tel','r-email','r-device','r-imei','r-costo','r-problema','r-note'].forEach(id => document.getElementById(id).value = '');
+}
+
+function renderRip(list) {
+  const tb = document.getElementById('rip-table');
+  const data = list || ripList;
+  if (!data.length) { tb.innerHTML = '<tr><td colspan="8" class="empty"><div class="empty-ico">🔧</div><div>Nessuna riparazione. Creane una!</div></td></tr>'; return; }
+  tb.innerHTML = data.map(r => `
+    <tr>
+      <td><b style="font-family:DM Mono,monospace;color:var(--accent)">#${r.id}</b></td>
+      <td><b>${r.nome}</b><br><small style="color:var(--muted)">${r.tel||''}</small></td>
+      <td>${r.tel||'—'}</td>
+      <td>${r.device}</td>
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.problema||'—'}</td>
+      <td>${r.costo ? '€ '+parseFloat(r.costo).toFixed(2) : '—'}</td>
+      <td>${badge(r.stato)}</td>
+      <td>
+        <select class="input btn-sm" style="width:120px" onchange="changeStato(${r.id}, this.value)">
+          <option ${r.stato==='In attesa'?'selected':''}>In attesa</option>
+          <option ${r.stato==='In lavorazione'?'selected':''}>In lavorazione</option>
+          <option ${r.stato==='Pronto'?'selected':''}>Pronto</option>
+          <option ${r.stato==='Consegnato'?'selected':''}>Consegnato</option>
+        </select>
+        <button class="btn btn-danger btn-sm" style="margin-top:4px" onclick="deleteRip(${r.id})">✕</button>
+      </td>
+    </tr>`).join('');
+}
+
+function changeStato(id, val) {
+  const r = ripList.find(x => x.id === id);
+  if (r) { r.stato = val; save(); renderRip(); renderDash(); }
+}
+function deleteRip(id) {
+  if (!confirm('Eliminare questa riparazione?')) return;
+  ripList = ripList.filter(x => x.id !== id); save(); renderRip(); renderDash();
+}
+function filterByStatus(val) {
+  renderRip(val ? ripList.filter(r => r.stato === val) : ripList);
+}
+function filterTable(q, tableId, list) {
+  if (!q) { renderRip(); return; }
+  const f = list.filter(r => JSON.stringify(r).toLowerCase().includes(q.toLowerCase()));
+  renderRip(f);
+}
+
+// ── MAGAZZINO ──
+function saveMag() {
+  const desc = document.getElementById('m-desc').value.trim();
+  if (!desc) return alert('Inserisci la descrizione');
+  magList.push({
+    cod: document.getElementById('m-cod').value || 'N/A',
+    desc, cat: document.getElementById('m-cat').value,
+    qty: parseInt(document.getElementById('m-qty').value)||0,
+    min: parseInt(document.getElementById('m-min').value)||0,
+    pac: parseFloat(document.getElementById('m-pac').value)||0,
+    pven: parseFloat(document.getElementById('m-pven').value)||0
+  });
+  save(); closeModal('modal-mag'); renderMag();
+  ['m-cod','m-desc','m-qty','m-min','m-pac','m-pven'].forEach(id => document.getElementById(id).value = '');
+}
+function renderMag() {
+  const tb = document.getElementById('mag-table');
+  const alert = document.getElementById('alert-scorte');
+  const scorte = magList.filter(m => m.qty <= m.min);
+  alert.innerHTML = scorte.length ? `<div class="alert alert-warn">⚠️ <b>${scorte.length} articolo/i</b> sotto scorta minima: ${scorte.map(m=>m.desc).join(', ')}</div>` : '';
+  if (!magList.length) { tb.innerHTML = '<tr><td colspan="7" class="empty"><div class="empty-ico">📦</div><div>Nessun pezzo in magazzino</div></td></tr>'; return; }
+  tb.innerHTML = magList.map((m,i) => `
+    <tr>
+      <td><code style="color:var(--accent2)">${m.cod}</code></td>
+      <td><b>${m.desc}</b></td>
+      <td>${m.cat}</td>
+      <td><b style="color:${m.qty<=m.min?'var(--danger)':'var(--success)'}">${m.qty}</b> ${m.qty<=m.min?'⚠️':''}</td>
+      <td>€ ${m.pac.toFixed(2)}</td>
+      <td>€ ${m.pven.toFixed(2)}</td>
+      <td>
+        <button class="btn btn-ghost btn-sm" onclick="qtyEdit(${i}, 1)">＋</button>
+        <button class="btn btn-ghost btn-sm" onclick="qtyEdit(${i}, -1)">－</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteMag(${i})">✕</button>
+      </td>
+    </tr>`).join('');
+}
+function qtyEdit(i, delta) { magList[i].qty = Math.max(0, magList[i].qty + delta); save(); renderMag(); }
+function deleteMag(i) { if (!confirm('Eliminare?')) return; magList.splice(i,1); save(); renderMag(); }
+
+// ── FATTURE ──
+function saveFat() {
+  const cliente = document.getElementById('f-cliente').value.trim();
+  if (!cliente) return alert('Inserisci il cliente');
+  fatId++;
+  const imp = parseFloat(document.getElementById('f-imp').value)||0;
+  const iva = parseInt(document.getElementById('f-iva').value)||22;
+  fatList.unshift({
+    id: fatId, cliente, desc: document.getElementById('f-desc').value,
+    tipo: document.getElementById('f-tipo').value,
+    imp, iva, totale: imp * (1 + iva/100), data: new Date().toLocaleDateString('it-IT')
+  });
+  save(); closeModal('modal-fat'); renderFat();
+}
+function renderFat() {
+  const tb = document.getElementById('fat-table');
+  if (!fatList.length) { tb.innerHTML = '<tr><td colspan="7" class="empty"><div class="empty-ico">🧾</div><div>Nessun documento emesso</div></td></tr>'; return; }
+  tb.innerHTML = fatList.map(f => `
+    <tr>
+      <td><b style="font-family:DM Mono,monospace;color:var(--accent)">${f.tipo.substring(0,3).toUpperCase()}-${String(f.id).padStart(3,'0')}</b></td>
+      <td>${f.cliente}</td>
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${f.desc||'—'}</td>
+      <td><b>€ ${f.totale.toFixed(2)}</b><br><small style="color:var(--muted)">+IVA ${f.iva}%</small></td>
+      <td><span class="badge ${f.tipo==='Fattura'?'badge-green':f.tipo==='Preventivo'?'badge-yellow':'badge-blue'}">${f.tipo}</span></td>
+      <td>${f.data}</td>
+      <td>
+        <button class="btn btn-ghost btn-sm" onclick="previewFat(${f.id})">👁 Anteprima</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteFat(${f.id})">✕</button>
+      </td>
+    </tr>`).join('');
+}
+function previewFat(id) {
+  const f = fatList.find(x => x.id === id);
+  const num = `${f.tipo.substring(0,3).toUpperCase()}-${String(f.id).padStart(3,'0')}`;
+  document.getElementById('invoice-preview').innerHTML = `
+    <div class="invoice-box">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px">
+        <div><h1>RepairPro</h1><p style="font-size:12px;color:#666;margin-top:4px">Il tuo negozio di riparazioni</p></div>
+        <div style="text-align:right">
+          <div style="font-size:20px;font-weight:700;color:#111">${f.tipo}</div>
+          <div style="font-size:13px;color:#666">N° ${num}</div>
+          <div style="font-size:13px;color:#666">${f.data}</div>
+        </div>
+      </div>
+      <div style="background:#f9f9f9;padding:16px;border-radius:8px;margin-bottom:20px">
+        <div style="font-size:11px;color:#999;margin-bottom:4px">CLIENTE</div>
+        <div style="font-weight:600;font-size:15px">${f.cliente}</div>
+      </div>
+      <table class="inv-table"><thead><tr><th>Descrizione</th><th style="text-align:right">Imponibile</th><th style="text-align:right">IVA</th><th style="text-align:right">Totale</th></tr></thead>
+      <tbody><tr>
+        <td>${f.desc||'Riparazione'}</td>
+        <td style="text-align:right">€ ${f.imp.toFixed(2)}</td>
+        <td style="text-align:right">${f.iva}%</td>
+        <td style="text-align:right"><b>€ ${f.totale.toFixed(2)}</b></td>
+      </tr></tbody></table>
+      <div style="text-align:right;margin-top:16px;padding-top:16px;border-top:2px solid #eee">
+        <div class="inv-total">Totale: € ${f.totale.toFixed(2)}</div>
+        <div style="font-size:12px;color:#999">IVA inclusa al ${f.iva}%</div>
+      </div>
+      <div style="margin-top:24px;font-size:11px;color:#bbb;text-align:center">Grazie per la tua fiducia • RepairPro</div>
+    </div>`;
+  openModal('modal-preview');
+}
+function deleteFat(id) { if (!confirm('Eliminare?')) return; fatList = fatList.filter(x => x.id !== id); save(); renderFat(); }
+
+// ── STORICO ──
+function renderStorico() {
+  const tb = document.getElementById('storico-table');
+  const all = [...ripList].reverse();
+  if (!all.length) { tb.innerHTML = '<tr><td colspan="7" class="empty"><div class="empty-ico">📋</div><div>Nessuna riparazione nello storico</div></td></tr>'; return; }
+  tb.innerHTML = all.map(r => `
+    <tr>
+      <td><b style="font-family:DM Mono,monospace;color:var(--accent)">#${r.id}</b></td>
+      <td>${r.nome}</td>
+      <td>${r.device}</td>
+      <td>${r.problema||'—'}</td>
+      <td>${r.note||'—'}</td>
+      <td>${r.costo ? '€ '+parseFloat(r.costo).toFixed(2) : '—'}</td>
+      <td>${r.data}</td>
+    </tr>`).join('');
+}
+
+// ── DASHBOARD ──
+function renderDash() {
+  const inLav = ripList.filter(r => r.stato === 'In lavorazione').length;
+  const pronti = ripList.filter(r => r.stato === 'Pronto').length;
+  const consegnati = ripList.filter(r => r.stato === 'Consegnato').length;
+  const totIncasso = fatList.filter(f => f.tipo === 'Fattura').reduce((s,f) => s+f.totale, 0);
+  document.getElementById('stats').innerHTML = `
+    <div class="stat-card"><div class="stat-label">Totale Riparazioni</div><div class="stat-value">${ripList.length}</div><div class="stat-sub">Tutte le schede</div></div>
+    <div class="stat-card blue"><div class="stat-label">In Lavorazione</div><div class="stat-value">${inLav}</div><div class="stat-sub">Attive ora</div></div>
+    <div class="stat-card green"><div class="stat-label">Pronte</div><div class="stat-value">${pronti}</div><div class="stat-sub">Da consegnare</div></div>
+    <div class="stat-card"><div class="stat-label">Incassato</div><div class="stat-value" style="font-size:24px">€ ${totIncasso.toFixed(0)}</div><div class="stat-sub">${fatList.filter(f=>f.tipo==='Fattura').length} fatture emesse</div></div>`;
+  const tb = document.getElementById('dash-table');
+  const last = ripList.slice(0,5);
+  if (!last.length) { tb.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--muted)">Nessuna riparazione ancora</td></tr>'; return; }
+  tb.innerHTML = last.map(r => `<tr>
+    <td><b style="font-family:DM Mono,monospace;color:var(--accent)">#${r.id}</b></td>
+    <td>${r.nome}</td><td>${r.device}</td>
+    <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.problema||'—'}</td>
+    <td>${badge(r.stato)}</td><td>${r.data}</td></tr>`).join('');
+}
+
+// INIT
+renderDash();
+</script>
+
+</body>
+</html>
